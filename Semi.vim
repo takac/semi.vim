@@ -1,57 +1,77 @@
-inoremap ; <ESC>:call Semicolon()<CR>
-inoremap <BS> <ESC>:call Backspace()<CR>s
+command! Semi :call Semicolon()
+inoremap ; <ESC>:Semi<CR>
+command! BS :call Backspace()
+inoremap <BS> <ESC>:BS<CR>
 
 let s:bs_flag = 0
 let s:pos = [0,0]
 
 fun! Backspace()
 	if s:bs_flag
-		let a = @a
-		normal! ma$x
-		normal! `aa;p
-		let @a = a
-		let s:bs_flag = 0
-		echo "hit!"
-	else
-		if col(".") == 1
-			exec "normal! i" . "\<BS>p"
+		if col(".")+1 == col("^")
+			call setline(".", substitute(getline("."), ";$", "", ""))
+			let x = getpos(".")
+			let x[2] = col(".") + 2
+			norm! a;
+			call setpos(".", x)
+			startinsert
+			echo "hit!"
 		else
-			exec "normal! a" . "\<BS>p"
+			call setline(".", substitute(getline("."), ";$", "", ""))
+			let x = getpos(".")
+			let x[2] = col(".") + 2
+			norm! a;
+			call setpos(".", x)
+			startinsert
+			echo "hit!"
 		endif
-		let s:bs_flag = 0
-		echo "miss"
+	else
+		if col(".")+1 == col("$") 
+			norm! x
+			startinsert!	
+			echo "muss"
+		elseif col(".") == 1
+			norm! x
+			startinsert
+			echo "mooose"
+		else
+			norm! x
+			startinsert
+			echo "miss"
+		endif
 	endif
+	let s:bs_flag = 0
 endf
 
 fun! Semicolon()
 	let s:bs_flag = 0
 	let line = getline(".")
-		if col(".")+1 == col("$")
-			call setline(".", substitute(getline("."), "$", ";", ""))
-			startinsert!
-			echo "end"
-		elseif line =~ ';\s*$'
-			norm! a;
+	if col(".")+1 == col("$")
+		call setline(".", substitute(getline("."), "$", ";", ""))
+		startinsert!
+		echo "end"
+	elseif line =~ ';\s*$'
+		norm! a;
+		let x = getpos(".")
+		let x[2] = col(".") + 1 
+		call setpos(".", x)
+		startinsert
+	else
+		let s:bs_flag = 1
+		if col(".") == 1
+			echo "start"
 			let x = getpos(".")
-			let x[2] = col(".") + 1 
+			let x[2] = 1
+			call setline(".", substitute(getline("."), "$", ";", ""))
 			call setpos(".", x)
+			echo "start"
 			startinsert
 		else
-			if col(".") == 1
-				echo "start"
-				let s:bs_flag = 1
-				let x = 0
-				call setline(".", substitute(getline("."), "$", ";", ""))
-				call setpos(".", x)
-				echo "start"
-				startinsert
-			else
-				let s:bs_flag = 1
-				let x = getpos(".")
-				let x[2] = col(".") + 1 
-				call setline(".", substitute(getline("."), "$", ";", ""))
-				call setpos(".", x)
-				startinsert
-			endif
+			let x = getpos(".")
+			let x[2] = col(".") + 1 
+			call setline(".", substitute(getline("."), "$", ";", ""))
+			call setpos(".", x)
+			startinsert
 		endif
+	endif
 endf
