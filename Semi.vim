@@ -10,9 +10,10 @@ command! SemiToggle call SemiToggle()
 command! Semi :call Semicolon()
 command! BS :call Backspace()
 inoremap <silent> <expr> ; SemiOn() ? "\<ESC>:Semi\<CR>" : ";"
-inoremap <silent> <expr> <BS> BSFlagSet() && g:Semi_On ? "\<ESC>:BS\<CR>" : "\<BS>"
+inoremap <silent> <expr> <BS> BSFlagSet() ? "\<ESC>:BS\<CR>" : "\<BS>"
 
 let s:bs_flag = 0
+let s:set_pos = [0,0,0,0]
 
 fun! SemiToggle()
 	let g:Semi_On = !g:Semi_On
@@ -23,7 +24,15 @@ fun! SemiOn()
 endf
 
 fun! BSFlagSet()
-    return s:bs_flag 
+	if col(".") == col("$")
+		if getline(".")[getpos(".")[2]-2] == ";"
+			return 0
+		else
+			return s:bs_flag && g:Semi_On && s:set_pos[2]+2 == getpos(".")[2]
+		endif
+	else
+		return s:bs_flag && g:Semi_On && s:set_pos[2]+1 == getpos(".")[2]
+	endif
 endf
 
 fun! Backspace()
@@ -49,6 +58,7 @@ fun! Semicolon()
 	let s:bs_flag = 0
 	let line = getline(".")
 	let x = getpos(".")
+	let s:set_pos = getpos(".")
 	" If in last column
 	if col(".")+1 == col("$")
 		if line =~ ';\s*$'
