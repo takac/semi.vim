@@ -1,9 +1,13 @@
+let s:bs_flag = 0
+
 command! Semi :call Semicolon()
 inoremap ; <ESC>:Semi<CR>
 command! BS :call Backspace()
-inoremap <BS> <ESC>:BS<CR>
+inoremap <expr> <BS> BSFlagSet() ? "\<ESC>:BS\<CR>" : "\<BS>"
 
-let s:bs_flag = 0
+fun! BSFlagSet()
+    return (s:bs_flag == 1)
+endf
 
 "THIS DOES NOT WORK COMPLETELY WHEN USED IN THE FIRST COLUMN!
 
@@ -27,22 +31,6 @@ fun! Backspace()
 			call setpos(".", x)
 			startinsert
 			"echo "hit!"
-		endif
-	else " EMULATE BS
-		"last col
-		if col(".")+1 == col("$") 
-			norm! x
-			startinsert!
-		"first col
-		elseif col(".") == 1
-			exec "norm! a\<BS>"
-			startinsert
-			" echo "mooose"
-		"other cols
-		else
-			norm! x
-			startinsert
-			"echo "miss"
 		endif
 	endif
 	let s:bs_flag = 0
