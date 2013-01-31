@@ -15,23 +15,13 @@ endf
 "<BS>
 fun! Backspace()
 	" Ready to move semicolon from end to cursor
-	if s:bs_flag
+	if s:bs_flag && getline(".") =~ "\\s*;\\s*$"
 		call setline(".", substitute(getline("."), ";\\(\\s*\\)$", "\\1", ""))
 		let x = getpos(".")
-		"first column
-		if col(".")+1 == 1
-			let x[2] = col(".") + 2
-			norm! a;
-			call setpos(".", x)
-			startinsert
-			"echo "hit!"
-		else
-			let x[2] = col(".") + 2
-			norm! a;
-			call setpos(".", x)
-			startinsert
-			"echo "hit!"
-		endif
+		call setline(".", strpart(getline("."), 0, x[2]) . ";" . strpart(getline("."), x[2]))
+		let x[2] = col(".") + 2
+		call setpos(".", x)
+		startinsert
 	endif
 	let s:bs_flag = 0
 endf
