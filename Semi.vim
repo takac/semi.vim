@@ -9,19 +9,25 @@ fun! BSFlagSet()
     return (s:bs_flag == 1)
 endf
 
-"THIS DOES NOT WORK COMPLETELY WHEN USED IN THE FIRST COLUMN!
+"This does not work completely when used in the first column!
 
 "If <BS> flag is set, move semi colon to the cursor position, otherwise emulate
 "<BS>
 fun! Backspace()
 	" Ready to move semicolon from end to cursor
-	if s:bs_flag && getline(".") =~ "\\s*;\\s*$"
-		call setline(".", substitute(getline("."), ";\\(\\s*\\)$", "\\1", ""))
+	let cur_line = getline(".")
+	let start_pos = getpos(".")
+	if s:bs_flag && cur_line =~ "\\s*;\\s*$"
+		let new_line = substitute(cur_line, ";\\(\\s*\\)$", "\\1", "")
 		let x = getpos(".")
-		call setline(".", strpart(getline("."), 0, x[2]) . ";" . strpart(getline("."), x[2]))
+		call setline(".", strpart(new_line, 0, x[2]) . ";" . strpart(new_line, x[2]))
 		let x[2] = col(".") + 2
 		call setpos(".", x)
-		startinsert
+		if start_pos[2]+1 == col("$")
+			startinsert!
+		else
+			startinsert
+		endif
 	endif
 	let s:bs_flag = 0
 endf
@@ -32,28 +38,23 @@ fun! Semicolon()
 	let x = getpos(".")
 	" If in last column
 	if col(".")+1 == col("$")
-		call setline(".", substitute(getline("."), "\\s*$", ";\\0", ""))
+		if line =~ ';\s*$'
+			call setline(".", substitute(line, "$", ";", "")) 
+		else
+			call setline(".", substitute(line, "\\s*$", ";\\0", "")) 
+			let s:bs_flag = 1        
+		endif
 		startinsert!
-		"echo "end"
 	"If line ends in ;
 	elseif line =~ ';\s*$'
-		norm! a;
-		let x[2] = col(".") + 1 
+		call setline(".", strpart(line, 0, x[2]) . ";" . strpart(line, x[2]))
+		let x[2] = col(".") + 2 
 		call setpos(".", x)
-		startinsert
-		" If in first column
-	elseif col(".") == 1
-		"echo "start"
-		let x[2] = 1
-		let s:bs_flag = 1
-		call setline(".", substitute(getline("."), "\\s*$", ";\\0", ""))
-		call setpos(".", x)
-		"echo "start"
 		startinsert
 	else
-		let x[2] = col(".") + 1 
-		let s:bs_flag = 1
-		call setline(".", substitute(getline("."), "\\s*$", ";\\0", ""))
+		let s:bs_flag = 1        
+		call setline(".", substitute(line, "\\s*$", ";\\0", ""))
+		let x[2] = col(".") + 1
 		call setpos(".", x)
 		startinsert
 		"echo "oether"
