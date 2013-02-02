@@ -24,15 +24,18 @@ fun! SemiOn()
 endf
 
 fun! BSFlagSet()
-	if col(".") == col("$")
-		if getline(".")[getpos(".")[2]-2] == ";"
-			return 0
+	if s:bs_flag && g:Semi_On
+		if col(".") == col("$")
+			if getline(".")[getpos(".")[2]-2] == ";"
+				return 0
+			else
+				return s:set_pos[2]+2 == getpos(".")[2]
+			endif
 		else
-			return s:bs_flag && g:Semi_On && s:set_pos[2]+2 == getpos(".")[2]
+			return s:set_pos[2]+1 == getpos(".")[2]
 		endif
-	else
-		return s:bs_flag && g:Semi_On && s:set_pos[2]+1 == getpos(".")[2]
-	endif
+	else 
+		return 0
 endf
 
 fun! Backspace()
